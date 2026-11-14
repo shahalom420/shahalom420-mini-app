@@ -1,70 +1,217 @@
-‎<!doctype html>
-‎<html lang="bn">
-‎<head>
-‎<meta charset="utf-8">
-‎<meta name="viewport" content="width=device-width, initial-scale=1">
-‎<meta name="theme-color" content="#f5f7fa">
-‎<title>SHAHALOM 420 | Video Library</title>
-‎<script src="https://telegram.org/js/telegram-web-app.js"></script>
-‎<style>
-‎:root{--bg:#f1f5f8;--card:#fff;--text:#17191d;--muted:#707781;--line:#e1e6eb;--accent:#d21d70;--shadow:0 10px 28px #16202a12}
-‎*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans Bengali",sans-serif}
-‎body.dark{--bg:#11151b;--card:#1c232c;--text:#f4f6f8;--muted:#aab2bd;--line:#303945;--shadow:0 10px 28px #0005}
-‎header{height:76px;background:var(--card);display:flex;align-items:center;justify-content:space-between;padding:0 22px;box-shadow:var(--shadow);position:sticky;top:0;z-index:5}
-‎.brand{font-size:25px;font-weight:850;letter-spacing:-.5px}.brand span{color:#d21d2b}.actions{display:flex;gap:12px}
-‎.iconbtn{border:0;background:transparent;color:var(--text);font-size:25px;width:44px;height:44px;border-radius:50%;cursor:pointer}
-‎.wrap{max-width:760px;margin:auto;padding:10px 16px 36px}
-‎.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px;margin:10px 0 26px;box-shadow:var(--shadow)}
-‎.thumb{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:16px;background:#d8e0e8;display:block}
-‎h2{font-size:20px;line-height:1.4;margin:14px 0 6px}.date{color:var(--muted);font-weight:600;font-size:14px}
-‎.clock{color:#d21d2b;margin-right:8px}.empty{text-align:center;color:var(--muted);padding:35px}
-‎.panel{display:none;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:14px 0}
-‎.panel.show{display:block}.panel input,.panel button{width:100%;padding:12px;margin:6px 0;border-radius:10px;border:1px solid var(--line);font:inherit}
-‎.panel button,.watch{background:#17191d;color:white;border:0;font-weight:700;cursor:pointer}
-‎.watch{padding:12px 18px;border-radius:12px;margin-top:12px}
-‎.drawer{display:none;position:fixed;inset:0;background:#0008;z-index:10}.drawer.show{display:block}
-‎.drawerbox{background:var(--card);height:100%;width:min(82%,330px);padding:24px}.drawerbox button{display:block;width:100%;padding:14px;text-align:left;background:none;border:0;color:var(--text);font-size:17px}
-‎.modal{display:none;position:fixed;inset:0;background:#000d;z-index:20;align-items:center;justify-content:center;padding:16px}.modal.show{display:flex}.modalbox{background:var(--card);width:min(100%,700px);border-radius:18px;padding:14px}.modal iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:12px}.close{float:right;border:0;background:none;color:var(--text);font-size:25px}
-‎small{color:var(--muted)}
-‎</style>
-‎</head>
-‎<body>
-‎<header>
-‎  <button class="iconbtn" onclick="toggleMenu()" aria-label="Menu">☰</button>
-‎  <div class="brand"><span>SHAHALOM</span> 420</div>
-‎  <div class="actions"><button class="iconbtn" onclick="toggleTheme()" aria-label="Dark mode">☾</button></div>
-‎</header>
-‎<main class="wrap">
-‎  <section id="admin" class="panel">
-‎    <h3>Admin Panel — নতুন ভিডিও যোগ</h3>
-‎    <input id="vtitle" placeholder="ভিডিওর নাম / Episode">
-‎    <input id="vimage" placeholder="Thumbnail image URL">
-‎    <input id="vlink" placeholder="YouTube video URL">
-‎    <input id="vdate" placeholder="তারিখ (যেমন: 13 Nov, 2026)">
-‎    <button onclick="addVideo()">ভিডিও যোগ করো</button>
-‎    <small>এই ডেমোতে ভিডিওগুলো এই ব্রাউজারের Local Storage-এ সেভ হবে। আসল সবার জন্য Admin Panel করতে অনলাইন ডেটাবেস লাগবে।</small>
-‎  </section>
-‎  <div id="videos"></div>
-‎</main>
-‎<div id="drawer" class="drawer" onclick="if(event.target.id==='drawer')toggleMenu()">
-‎ <div class="drawerbox">
-‎  <h2>SHAHALOM 420</h2>
-‎  <button onclick="showHome()">⌂ Home</button>
-‎  <button onclick="document.getElementById('admin').classList.toggle('show');toggleMenu()">＋ Admin Panel</button>
-‎  <button onclick="toggleTheme();toggleMenu()">☾ Dark Mode</button>
-‎ </div>
-‎</div>
-‎<div id="modal" class="modal" onclick="if(event.target.id==='modal')closeVideo()">
-‎ <div class="modalbox"><button class="close" onclick="closeVideo()">×</button><div id="player"></div></div>
-‎</div>
-‎<script>
-‎const defaults=[
-‎ {title:"গুলিয়াখালী সী বিচ | Blog-07",image:"",link:"https://www.youtube.com/",date:"3 weeks ago"},
-‎ {title:"সীতাকুণ্ড পাহাড় ঘুরাঘুরি | Blog-06",image:"",link:"https://www.youtube.com/",date:"1 month ago"},
-‎ {title:"জাতীয় নির্বাচন ২০২৬ | Blog-05",image:"",link:"https://www.youtube.com/",date:"3 months ago"}
-‎];
-‎let videos=JSON.parse(localStorage.getItem("sh420videos")||"null")||defaults;
-‎function save(){localStorage.setItem("sh420videos",JSON.stringify(videos));render()}
-‎function render(){const root=document.getElementById("videos");root.innerHTML="";
-‎ if(!videos.length){root.innerHTML='<div class="empty">এখনো কোনো ভিডিও যোগ করা হয়নি</div>';return}
-‎ videos.forEach((v,i)=>{const card=document.createElement
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SHAHALOM 420</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#f1f5f8;--card:#fff;--text:#17191d;--muted:#707781;--line:#e1e6eb}
+*{box-sizing:border-box}
+body{margin:0;padding:16px;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+body.dark{--bg:#11151b;--card:#1c232c;--text:#f4f6f8;--muted:#aab2bd;--line:#303945}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+h2{font-size:21px}
+button{padding:11px 15px;border:0;border-radius:9px;background:#16a34a;color:white;font-weight:bold;cursor:pointer;margin:4px}
+input{width:100%;padding:13px;margin:7px 0;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--text)}
+.panel,.video{background:var(--card);padding:15px;border-radius:13px;margin:14px 0}
+.panel{border:1px solid var(--line)}
+.video img{width:100%;border-radius:9px;max-height:220px;object-fit:cover}
+.video h3{font-size:17px}
+small{color:var(--muted)}
+.hidden{display:none}
+.danger{background:#dc2626}
+#videos{display:grid;grid-template-columns:1fr;gap:10px}
+</style>
+</head>
+<body>
+
+<header>
+<h2>SHAHALOM 420</h2>
+<button onclick="toggleTheme()">Dark Mode</button>
+</header>
+
+<div class="panel">
+<b>Coin Balance: 0</b>
+<h2>Video Library</h2>
+</div>
+
+<section id="login" class="panel hidden">
+<h3>Admin Login</h3>
+<input id="email" type="email" placeholder="Admin Email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p id="loginMsg"></p>
+</section>
+
+<section id="admin" class="panel hidden">
+<h3>Admin Panel</h3>
+<button onclick="logout()" class="danger">Logout</button>
+<input id="vtitle" placeholder="ভিডিওর নাম">
+<input id="vimage" placeholder="Thumbnail Image URL">
+<input id="vlink" placeholder="YouTube video URL">
+<input id="vdate" placeholder="তারিখ (যেমন: 13 Nov, 2026)">
+<button onclick="addVideo()">ভিডিও যোগ করো</button>
+<p id="msg"></p>
+</section>
+
+<h2>ভিডিওসমূহ</h2>
+<div id="videos">ভিডিও লোড হচ্ছে...</div>
+
+<script>
+const firebaseConfig = {
+apiKey: "AIzaSyA8HLJ8AdqhzJiiGwC1ziQ4NFzOf9JmVUo",
+authDomain: "shahalom420.firebaseapp.com",
+projectId: "shahalom420",
+storageBucket: "shahalom420.firebasestorage.app",
+messagingSenderId: "555885798754",
+appId: "1:555885798754:web:080e8f7603831cb762383b",
+measurementId: "G-XQZXHPG5MQ"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const ADMIN_UID = "D3J9htaBqSMPwKpRv7n5ytD8mjF3";
+
+function toggleTheme(){
+document.body.classList.toggle("dark");
+}
+
+function login(){
+const email=document.getElementById("email").value.trim();
+const password=document.getElementById("password").value;
+document.getElementById("loginMsg").textContent="লগইন হচ্ছে...";
+auth.signInWithEmailAndPassword(email,password)
+.catch(e=>{
+document.getElementById("loginMsg").textContent=e.message;
+});
+}
+
+function logout(){
+auth.signOut();
+}
+
+auth.onAuthStateChanged(user=>{
+const isAdmin=user && user.uid===ADMIN_UID;
+document.getElementById("admin").classList.toggle("hidden",!isAdmin);
+document.getElementById("login").classList.toggle("hidden",!!isAdmin);
+});
+
+function getThumb(link){
+try{
+const u=new URL(link);
+let id="";
+if(u.hostname.includes("youtu.be")){
+id=u.pathname.slice(1);
+}else{
+id=u.searchParams.get("v")||"";
+}
+return id?"https://img.youtube.com/vi/"+id+"/hqdefault.jpg":"";
+}catch(e){return "";}
+}
+
+function addVideo(){
+const user=auth.currentUser;
+if(!user || user.uid!==ADMIN_UID){
+alert("Admin Login প্রয়োজন");
+return;
+}
+
+const title=document.getElementById("vtitle").value.trim();
+const link=document.getElementById("vlink").value.trim();
+let image=document.getElementById("vimage").value.trim();
+const date=document.getElementById("vdate").value.trim();
+
+if(!title || !link){
+alert("ভিডিওর নাম ও YouTube URL দাও");
+return;
+}
+
+if(!image) image=getThumb(link);
+
+document.getElementById("msg").textContent="ভিডিও যোগ হচ্ছে...";
+
+db.collection("Videos").add({
+title:title,
+link:link,
+image:image,
+date:date,
+createdAt:firebase.firestore.FieldValue.serverTimestamp()
+}).then(()=>{
+document.getElementById("vtitle").value="";
+document.getElementById("vimage").value="";
+document.getElementById("vlink").value="";
+document.getElementById("vdate").value="";
+document.getElementById("msg").textContent="ভিডিও যোগ হয়েছে!";
+}).catch(e=>{
+document.getElementById("msg").textContent=e.message;
+});
+}
+
+function deleteVideo(id){
+const user=auth.currentUser;
+if(!user || user.uid!==ADMIN_UID)return;
+if(confirm("ভিডিওটি ডিলিট করবে?")){
+db.collection("Videos").doc(id).delete()
+.catch(e=>alert(e.message));
+}
+}
+
+db.collection("Videos").onSnapshot(snapshot=>{
+const root=document.getElementById("videos");
+root.innerHTML="";
+
+if(snapshot.empty){
+root.textContent="কোনো ভিডিও নেই";
+return;
+}
+
+snapshot.forEach(doc=>{
+const v=doc.data();
+const card=document.createElement("div");
+card.className="video";
+
+const img=document.createElement("img");
+img.src=v.image||v.thumbnail||getThumb(v.link||v.url||"");
+img.alt=v.title||v.name||"Video";
+
+const title=document.createElement("h3");
+title.textContent=v.title||v.name||"ভিডিও";
+
+const date=document.createElement("small");
+date.textContent=v.date||"";
+
+const link=document.createElement("a");
+link.href=v.link||v.url||"#";
+link.target="_blank";
+link.rel="noopener";
+link.textContent="Watch Now";
+
+card.append(img,title,date,document.createElement("br"),link);
+
+if(auth.currentUser && auth.currentUser.uid===ADMIN_UID){
+const del=document.createElement("button");
+del.className="danger";
+del.textContent="Delete";
+del.onclick=()=>deleteVideo(doc.id);
+card.append(del);
+}
+root.append(card);
+});
+},error=>{
+document.getElementById("videos").textContent="ভিডিও লোড হয়নি: "+error.message;
+});
+
+if(window.Telegram && window.Telegram.WebApp){
+Telegram.WebApp.ready();
+Telegram.WebApp.expand();
+}
+</script>
+</body>
+</html>
