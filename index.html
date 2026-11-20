@@ -1,13 +1,19 @@
+
 <!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SHAHALOM 420</title>
+
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+<!-- AdsGram SDK -->
+<script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
 <style>
 :root{--bg:#f1f5f8;--card:#fff;--text:#17191d;--muted:#707781;--line:#e1e6eb}
 *{box-sizing:border-box}
@@ -25,8 +31,10 @@ small{color:var(--muted)}
 .hidden{display:none}
 .danger{background:#dc2626}
 #videos{display:grid;grid-template-columns:1fr;gap:10px}
+a{color:#2563eb}
 </style>
 </head>
+
 <body>
 
 <header>
@@ -134,7 +142,6 @@ return;
 }
 
 if(!image) image=getThumb(link);
-
 document.getElementById("msg").textContent="ভিডিও যোগ হচ্ছে...";
 
 db.collection("Videos").add({
@@ -157,6 +164,7 @@ document.getElementById("msg").textContent=e.message;
 function deleteVideo(id){
 const user=auth.currentUser;
 if(!user || user.uid!==ADMIN_UID)return;
+
 if(confirm("ভিডিওটি ডিলিট করবে?")){
 db.collection("Videos").doc(id).delete()
 .catch(e=>alert(e.message));
@@ -202,6 +210,7 @@ del.textContent="Delete";
 del.onclick=()=>deleteVideo(doc.id);
 card.append(del);
 }
+
 root.append(card);
 });
 },error=>{
@@ -213,5 +222,6 @@ Telegram.WebApp.ready();
 Telegram.WebApp.expand();
 }
 </script>
+
 </body>
 </html>
